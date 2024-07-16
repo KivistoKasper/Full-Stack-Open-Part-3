@@ -25,8 +25,16 @@ let persons = [
   }
 ]
 
-app.get('/', (request, response) => {
-    response.send('<h1>Hello World!</h1>')
+const person_amount = persons.length;
+var now = new Date();
+const info_text = 
+`<div>
+    <p> Phonebook has info for ${person_amount} people </p>
+    <p> ${now} </p>
+</div>`;
+
+app.get('/info', (request, response) => {
+    response.send(info_text)
   })
   
   app.get('/api/persons', (request, response) => {
