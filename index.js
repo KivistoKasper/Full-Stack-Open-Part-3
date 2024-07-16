@@ -85,21 +85,36 @@ const generateId = () => {
     const body = request.body
     console.log(body)  
 
+    // check for content
     if (!body.content) {
         return response.status(400).json({ 
           error: 'content missing' 
         })
       }
     
-    const person = {
+    // check for name and number
+    if (!body.content.name || !body.content.number) {
+        return response.status(400).json({ 
+            error: 'name or number missing' 
+          })
+    }
+
+    const new_person = {
         id: randomId(person_amount, 999),
         name: body.content.name,
         number: body.content.number        
     }
 
-    persons = persons.concat(person)
+    // check if name is already in the phonebook
+    if ( persons.some(person => person.name === new_person.name) ){
+        return response.status(400).json({ 
+            error: 'name already found from the phonebook' 
+          })
+    }
 
-    response.json(person)
+    persons = persons.concat(new_person)
+
+    response.status(201).json(new_person)
 })
   
   const PORT = 3001
