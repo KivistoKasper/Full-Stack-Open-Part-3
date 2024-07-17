@@ -4,7 +4,14 @@ const morgan = require('morgan')
 const app = express()
 
 app.use(express.json())
-app.use(morgan('tiny'))
+
+// create custom token for morgan
+morgan.token("show-content", function(req,res){
+  return JSON.stringify(req.body);
+})
+
+//app.use(morgan('tiny'))
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :show-content'))
 
 let persons = [
   {
@@ -52,7 +59,6 @@ const generateId = () => {
     return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled); // The maximum is inclusive and the minimum is inclusive
   }
   
-
   // get info 
   app.get('/info', (request, response) => {
     response.send(info_text)
@@ -86,7 +92,7 @@ const generateId = () => {
   // add person
   app.post('/api/persons', (request, response) => {  
     const body = request.body
-    console.log(body)  
+    //console.log(body)  
 
     // check for content
     if (!body.content) {
