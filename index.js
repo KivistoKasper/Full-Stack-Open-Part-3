@@ -1,8 +1,8 @@
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
 
 const app = express()
-
 app.use(express.json())
 
 // create custom token for morgan
@@ -11,26 +11,27 @@ morgan.token("show-content", function(req,res){
 })
 
 //app.use(morgan('tiny'))
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms :show-content'))
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :show-content'));
+app.use(cors());
 
 let persons = [
   {
-    id: "1",
+    id: 1,
     name: "Arto Hellas",
     number: "040-123456"
   },
   {
-    id: "2",
+    id: 2,
     name: "Ada Lovelace",
     number: "39-44-532532"
   },
   {
-    id: "3",
+    id: 3,
     name: "Dan Abramov",
     number: "12-43-222222"
   },
   {
-    id: "4",
+    id: 4,
     name: "Mary Poppendieck",
     number: "39-44-776561"
   }
@@ -49,7 +50,7 @@ const generateId = () => {
     const maxId = persons.length > 0
       ? Math.max(...persons.map(p => Number(p.id)))
       : 0
-    return String(maxId + 1)
+    return (maxId + 1)
   }
 
   // random id generator
@@ -71,7 +72,7 @@ const generateId = () => {
 
   // get person with id
   app.get('/api/persons/:id', (request, response) => {
-    const id = request.params.id
+    const id = Number(request.params.id)
     const person = persons.find(person => person.id === id)
     
     if (person){
@@ -83,26 +84,27 @@ const generateId = () => {
 
   // delete person with id
   app.delete('/api/persons/:id', (request, response) => {
-    const id = request.params.id
+    const id = Number(request.params.id)
     persons = persons.filter(person => person.id !== id)
   
     response.status(204).end()
   })
 
-  // add person
+  // ---add person---
   app.post('/api/persons', (request, response) => {  
-    const body = request.body
-    //console.log(body)  
-
-    // check for content
-    if (!body.content) {
+     
+    // check for body
+    if (!request.body) {
         return response.status(400).json({ 
-          error: 'content missing' 
+          error: 'body missing' 
         })
       }
-    
+
+    const body = request.body
+    //console.log(body)
+
     // check for name and number
-    if (!body.content.name || !body.content.number) {
+    if (!body.name || !body.number) {
         return response.status(400).json({ 
             error: 'name or number missing' 
           })
@@ -110,8 +112,8 @@ const generateId = () => {
 
     const new_person = {
         id: randomId(person_amount, 999),
-        name: body.content.name,
-        number: body.content.number        
+        name: body.name,
+        number: body.number        
     }
 
     // check if name is already in the phonebook
