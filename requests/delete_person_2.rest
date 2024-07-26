@@ -1,1 +1,2 @@
-DELETE http://localhost:3001/api/persons/2
+//DELETE http://localhost:3001/api/persons/2
+DELETE https://full-stack-open-part-3-0twj.onrender.com/api/persons/2
