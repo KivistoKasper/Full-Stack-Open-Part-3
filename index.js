@@ -6,8 +6,8 @@ const Contact = require('./models/contact')
 
 const app = express()
 app.use(express.json())
-app.use(cors());
 app.use(express.static('dist'));
+app.use(cors());
 
 // ---Morgan---
 // create custom token for morgan
@@ -78,25 +78,27 @@ const generateId = () => {
   })
 
   // ---get person with id---
-  app.get('/api/persons/:id', (request, response) => {
+  app.get('/api/persons/:id', (request, response, next) => {
     const id = request.params.id
-    Contact.findById(id).then(contact => {
-      response.json(contact);
+    Contact.findById(id)
+    .then(contact => {
+      if ( contact){
+        response.json(contact);
+      } else {
+        response.status(404).end();
+      }
     })
-    .catch((error) => {
-      console.log('error finding contact:', error.message)
-      response.status(404).end();
-  })
-    
-    //const person = persons.find(person => person.id === id) old stuff
+    .catch((error) => next(error))
   })
 
   // ---delete person with id---
-  app.delete('/api/persons/:id', (request, response) => {
+  app.delete('/api/persons/:id', (request, response, next) => {
     const id = request.params.id
-    persons = persons.filter(person => person.id !== id)
-  
-    response.status(204).end()
+    Contact.findByIdAndDelete(id)
+    .then(result => {
+      response.status(204).end()
+    })
+    .catch(error => next(error))
   })
 
   // ---add person---
@@ -134,7 +136,27 @@ const generateId = () => {
     })
     
 })
-  
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
+// olemattomien osoitteiden käsittely
+app.use(unknownEndpoint)
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
+
+// !Muista tämä aina viimeiseksi!
+app.use(errorHandler)
+
 const PORT = process.env.PORT 
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
