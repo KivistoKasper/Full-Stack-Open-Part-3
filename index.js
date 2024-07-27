@@ -1,38 +1,40 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const Contact = require('./models/contact')
 
 const app = express()
 app.use(express.json())
+app.use(cors());
+app.use(express.static('dist'));
 
+// ---Morgan---
 // create custom token for morgan
 morgan.token("show-content", function(req,res){
   return JSON.stringify(req.body);
 })
-
-//app.use(morgan('tiny'))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :show-content'));
-app.use(cors());
-app.use(express.static('dist'));
+// ---Morgan---
 
 let persons = [
   {
-    id: 1,
+    id: "1",
     name: "Arto Hellas",
     number: "040-123456"
   },
   {
-    id: 2,
+    id: "2",
     name: "Ada Lovelace",
     number: "39-44-532532"
   },
   {
-    id: 3,
+    id: "3",
     name: "Dan Abramov",
     number: "12-43-222222"
   },
   {
-    id: 4,
+    id: "4",
     name: "Mary Poppendieck",
     number: "39-44-776561"
   }
@@ -58,7 +60,8 @@ const generateId = () => {
   function randomId(min, max) {
     const minCeiled = Math.ceil(min);
     const maxFloored = Math.floor(max);
-    return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled); // The maximum is inclusive and the minimum is inclusive
+    const id = Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+    return  id.toString() // The maximum is inclusive and the minimum is inclusive
   }
   
   // get info 
@@ -68,12 +71,15 @@ const generateId = () => {
   
   // get all persons
   app.get('/api/persons', (request, response) => {
-    response.json(persons)
+    Contact.find({}).then(contact => {
+      response.json(contact)
+    })
+    //response.json(persons) old stuff
   })
 
   // get person with id
   app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
+    const id = request.params.id
     const person = persons.find(person => person.id === id)
     
     if (person){
@@ -85,7 +91,7 @@ const generateId = () => {
 
   // delete person with id
   app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
+    const id = request.params.id
     persons = persons.filter(person => person.id !== id)
   
     response.status(204).end()
@@ -129,7 +135,7 @@ const generateId = () => {
     response.status(201).json(new_person)
 })
   
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT 
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
   })
