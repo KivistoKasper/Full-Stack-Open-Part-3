@@ -64,12 +64,12 @@ const generateId = () => {
     return  id.toString() // The maximum is inclusive and the minimum is inclusive
   }
   
-  // get info 
+  // ---get info---
   app.get('/info', (request, response) => {
     response.send(info_text)
   })
   
-  // get all persons
+  // ---get all persons---
   app.get('/api/persons', (request, response) => {
     Contact.find({}).then(contact => {
       response.json(contact)
@@ -77,19 +77,21 @@ const generateId = () => {
     //response.json(persons) old stuff
   })
 
-  // get person with id
+  // ---get person with id---
   app.get('/api/persons/:id', (request, response) => {
     const id = request.params.id
-    const person = persons.find(person => person.id === id)
+    Contact.findById(id).then(contact => {
+      response.json(contact);
+    })
+    .catch((error) => {
+      console.log('error finding contact:', error.message)
+      response.status(404).end();
+  })
     
-    if (person){
-        response.json(person);
-    } else {
-        response.status(404).end();
-    }
+    //const person = persons.find(person => person.id === id) old stuff
   })
 
-  // delete person with id
+  // ---delete person with id---
   app.delete('/api/persons/:id', (request, response) => {
     const id = request.params.id
     persons = persons.filter(person => person.id !== id)
@@ -99,40 +101,38 @@ const generateId = () => {
 
   // ---add person---
   app.post('/api/persons', (request, response) => {  
-     
     // check for body
     if (!request.body) {
         return response.status(400).json({ 
           error: 'body missing' 
         })
       }
-
     const body = request.body
     //console.log(body)
-
     // check for name and number
     if (!body.name || !body.number) {
         return response.status(400).json({ 
             error: 'name or number missing' 
           })
     }
-
-    const new_person = {
-        id: randomId(person_amount, 999),
+    const new_contact = new Contact({
+        //id: randomId(person_amount, 999),
         name: body.name,
         number: body.number        
-    }
-
+    })
     // check if name is already in the phonebook
+    /* To be added in future
     if ( persons.some(person => person.name === new_person.name) ){
         return response.status(400).json({ 
             error: 'name already found from the phonebook' 
           })
     }
-
-    persons = persons.concat(new_person)
-
-    response.status(201).json(new_person)
+    */
+    new_contact.save().then(savedContact => {
+        persons = persons.concat(savedContact)
+        response.status(201).json(savedContact)
+    })
+    
 })
   
 const PORT = process.env.PORT 
