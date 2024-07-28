@@ -135,7 +135,33 @@ const generateId = () => {
         response.status(201).json(savedContact)
     })
     
-})
+  })
+
+  // ---Update contact---
+  app.put('/api/persons/:id', (request, response, next) => {
+    if (!request.body) {
+      return response.status(400).json({ 
+        error: 'body missing' 
+      })
+    }
+    const body = request.body;
+
+    if (!body.name || !body.number) {
+      return response.status(400).json({ 
+          error: 'name or number missing' 
+        })
+    }
+    const contact = {
+      name: body.name,
+      number: body.number
+    }
+
+    Contact.findByIdAndUpdate(request.params.id, contact, {new: true})
+      .then(updatedContact => {
+        response.json(updatedContact)
+      })
+      .catch(error => next(error))
+  })
 
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
