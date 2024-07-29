@@ -6,15 +6,15 @@ const Contact = require('./models/contact')
 
 const app = express()
 app.use(express.json())
-app.use(express.static('dist'));
-app.use(cors());
+app.use(express.static('dist'))
+app.use(cors())
 
 // ---Morgan---
 // create custom token for morgan
-morgan.token("show-content", function(req,res){
-  return JSON.stringify(req.body);
+morgan.token('show-content', function(req){
+  return JSON.stringify(req.body)
 })
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms :show-content'));
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :show-content'))
 // ---Morgan---
 
 // get database contacts to backend
@@ -24,16 +24,16 @@ Contact.find({}).then(contacts => {
   persons = persons.concat(contacts)
   //console.log('persons ', persons)
 })
-  
+
 // ---get info---
 app.get('/info', (request, response) => {
-  const person_amount = persons.length;
-  var now = new Date();
-  const info_text = 
+  const person_amount = persons.length
+  var now = new Date()
+  const info_text =
     `<div>
         <p> Phonebook has info for ${person_amount} people </p>
         <p> ${now} </p>
-    </div>`;
+    </div>`
   response.send(info_text)
 })
 
@@ -48,40 +48,41 @@ app.get('/api/persons', (request, response) => {
 app.get('/api/persons/:id', (request, response, next) => {
   const id = request.params.id
   Contact.findById(id)
-  .then(contact => {
-    if ( contact){
-      response.json(contact);
-    } else {
-      response.status(404).end();
-    }
-  })
-  .catch((error) => next(error))
+    .then(contact => {
+      if ( contact){
+        response.json(contact)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch((error) => next(error))
 })
 
 // ---delete person with id---
 app.delete('/api/persons/:id', (request, response, next) => {
   const id = request.params.id
   Contact.findByIdAndDelete(id)
-    .then(result => {
+    .then(() => {
+      //console.log('delete result from server', result)
       persons = persons.filter(person => person.id !== id) // delete from backend
-      response.status(204).end() 
+      response.status(204).end()
     })
     .catch(error => next(error))
 })
 
 // ---add person---
-app.post('/api/persons', (request, response, next) => {  
+app.post('/api/persons', (request, response, next) => {
   // new concact
   const new_contact = new Contact({
-      name: request.body.name,
-      number: request.body.number        
+    name: request.body.name,
+    number: request.body.number
   })
   // saving contact to database and locally
   new_contact.save()
     .then(savedContact => {
-        persons = persons.concat(savedContact)
-        //console.log('persons ', persons)
-        response.status(201).json(savedContact)
+      persons = persons.concat(savedContact)
+      //console.log('persons ', persons)
+      response.status(201).json(savedContact)
     })
     .catch(error => next(error))
 })
@@ -94,9 +95,8 @@ app.put('/api/persons/:id', (request, response, next) => {
     number: request.body.number
   }
 
-  Contact.findByIdAndUpdate(request.params.id, contact, 
-    {new: true, runValidators: true, context: 'query'}
-  )
+  Contact.findByIdAndUpdate(request.params.id, contact,
+    { new: true, runValidators: true, context: 'query' })
     .then(updatedContact => {
       response.json(updatedContact)
     })
@@ -109,7 +109,7 @@ const unknownEndpoint = (request, response) => {
 // handling of non-existent addresses
 app.use(unknownEndpoint)
 
-// Error handler middleware 
+// Error handler middleware
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
 
@@ -124,7 +124,7 @@ const errorHandler = (error, request, response, next) => {
 // !This is always last!
 app.use(errorHandler)
 
-const PORT = process.env.PORT 
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
-  })
+const PORT = process.env.PORT
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})

@@ -21,27 +21,27 @@ const numberSchema = new mongoose.Schema({
 const Number = mongoose.model('Number', numberSchema)
 
 if (process.argv.length === 3) {
-    Number.find({}).then(result => {
-        console.log("Phonebook:")
-        result.forEach(number => {
-          console.log(`${number.name} ${number.number}`)
-        })
-        mongoose.connection.close()
-      })
+  Number.find({}).then(result => {
+    console.log('Phonebook:')
+    result.forEach(number => {
+      console.log(`${number.name} ${number.number}`)
+    })
+    mongoose.connection.close()
+  })
 }
 else if (process.argv.length === 5) {
-    const number = new Number({
-        name: process.argv[3],
-        number: process.argv[4]
-      })
-      
-    number.save().then(result => {
+  const number = new Number({
+    name: process.argv[3],
+    number: process.argv[4]
+  })
+
+  number.save().then(() => {
     console.log(`Added ${number.name} number ${number.number} to phonebook`)
     mongoose.connection.close()
-    })
+  })
 }
 else {
-    console.log(`Give a name and a phonenumber`)
-    mongoose.connection.close()
+  console.log('Give a name and a phonenumber')
+  mongoose.connection.close()
 }
 
