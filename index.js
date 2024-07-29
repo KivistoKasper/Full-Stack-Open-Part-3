@@ -70,50 +70,28 @@ app.delete('/api/persons/:id', (request, response, next) => {
 })
 
 // ---add person---
-app.post('/api/persons', (request, response) => {  
-  // check for body
-  if (!request.body) {
-      return response.status(400).json({ 
-        error: 'body missing' 
-      })
-    }
-  const body = request.body
-  //console.log(body)
-  // check for name and number
-  if (!body.name || !body.number) {
-      return response.status(400).json({ 
-          error: 'name or number missing' 
-        })
-  }
+app.post('/api/persons', (request, response, next) => {  
+  // new concact
   const new_contact = new Contact({
-      name: body.name,
-      number: body.number        
+      name: request.body.name,
+      number: request.body.number        
   })
-  
-  new_contact.save().then(savedContact => {
-      persons = persons.concat(savedContact)
-      //console.log('persons ', persons)
-      response.status(201).json(savedContact)
-  })
+  // saving contact to database and locally
+  new_contact.save()
+    .then(savedContact => {
+        persons = persons.concat(savedContact)
+        //console.log('persons ', persons)
+        response.status(201).json(savedContact)
+    })
+    .catch(error => next(error))
 })
 
 // ---Update contact---
 app.put('/api/persons/:id', (request, response, next) => {
-  if (!request.body) {
-    return response.status(400).json({ 
-      error: 'body missing' 
-    })
-  }
-  const body = request.body;
-
-  if (!body.name || !body.number) {
-    return response.status(400).json({ 
-        error: 'name or number missing' 
-      })
-  }
+  // JS object to update database's contact with
   const contact = {
-    name: body.name,
-    number: body.number
+    name: request.body.name,
+    number: request.body.number
   }
 
   Contact.findByIdAndUpdate(request.params.id, contact, {new: true})
@@ -126,20 +104,22 @@ app.put('/api/persons/:id', (request, response, next) => {
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
-// olemattomien osoitteiden käsittely
+// handling of non-existent addresses
 app.use(unknownEndpoint)
 
+// Error handler middleware 
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
-  }
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })  }
 
   next(error)
 }
 
-// !Muista tämä aina viimeiseksi!
+// !This is always last!
 app.use(errorHandler)
 
 const PORT = process.env.PORT 
